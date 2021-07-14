@@ -1,4 +1,6 @@
 import json
+import sys
+from pathlib import Path
 
 # Third party imports
 from PyQt5.QtWidgets import (QMainWindow)
@@ -15,10 +17,11 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.configuration = json.load(open("configuration.json", "r"))
+        self.configuration = json.load(open(resource_path("configuration.json"), "r"))
 
         # Class variables to hold state of check boxes
         self.two_handed_enabled = True
+        self.medium_size_enabled = False
         self.inspire_courage_enabled = False
         self.haste_enabled = False
         self.raging_enabled = False
@@ -27,6 +30,7 @@ class MainWindow(QMainWindow):
 
         # Connections to toggle state on check box click
         self.ui.two_handed_check_box.clicked.connect(self.two_handed_toggled)
+        self.ui.medium_size_check_box.clicked.connect(self.medium_toggled)
         self.ui.inspire_courage_check_box.clicked.connect(self.inspire_courage_toggled)
         self.ui.haste_check_box.clicked.connect(self.haste_toggled)
         self.ui.raging_check_box.clicked.connect(self.raging_toggled)
@@ -41,6 +45,10 @@ class MainWindow(QMainWindow):
 
     def two_handed_toggled(self, state):
         self.two_handed_enabled = state
+        self.update_output()
+
+    def medium_toggled(self, state):
+        self.medium_size_enabled = state
         self.update_output()
 
     def inspire_courage_toggled(self, state):
@@ -66,6 +74,10 @@ class MainWindow(QMainWindow):
     def update_output(self):
         # Calculate strength bonus
         strength = self.configuration['STR']
+
+        if self.medium_size_enabled:
+            strength -= 2
+
         if self.raging_enabled:
             strength += self.configuration['RAGE_STR_BONUS']
         effective_strength_bonus = int((strength - 10) / 2)
@@ -113,8 +125,15 @@ class MainWindow(QMainWindow):
         if self.power_attack_enabled:
             attack_bonus += self.configuration['POWER_ATTACK_ATTACK']
 
+            # For the reckless rage feat
+            if self.raging_enabled:
+                attack_bonus -= 1
+
         if self.flanking_enabled:
             attack_bonus += self.configuration['FLANKING']
+
+        if self.medium_size_enabled:
+            attack_bonus += 1
 
         return attack_bonus
 
@@ -131,6 +150,9 @@ class MainWindow(QMainWindow):
             power_attack_damage = int(power_attack_damage * self.configuration['TWO_HANDED_MULTI'])
         if self.power_attack_enabled:
             damage += power_attack_damage
+            # For the reckless rage feat
+            if self.raging_enabled:
+                damage += 3
 
         if self.inspire_courage_enabled:
             damage += self.configuration['INSPIRE']
@@ -138,3 +160,8 @@ class MainWindow(QMainWindow):
         die = self.configuration['DAMAGE_DIE']
 
         return die, damage
+
+
+def resource_path(relative_path):
+    base_path = Path(getattr(sys, '_MEIPASS', Path(sys.argv[0]).resolve().parent))
+    return base_path / relative_path

@@ -77,6 +77,13 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="medium_size_check_box">
+            <property name="text">
+             <string>Medium Size</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="inspire_courage_check_box">
             <property name="text">
              <string>Insipre Courage (Bard playing)</string>
@@ -225,7 +232,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
